@@ -1,13 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Teams from './pages/Teams';
 import TeamDetail from './pages/TeamDetail';
-import Tasks from './pages/Tasks';
 import MyTasks from './pages/MyTasks';
 import TaskDetail from './pages/TaskDetail';
 import AdminPanel from './pages/AdminPanel';
@@ -79,7 +79,9 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <NotificationProvider>
+        <AppRoutes />
+      </NotificationProvider>
     </AuthProvider>
   );
 }

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import NotificationBell from './NotificationBell';
+import NotificationToast from './NotificationToast';
 import './Layout.css';
 
 const Layout = () => {
@@ -26,6 +28,7 @@ const Layout = () => {
           {isAdmin() && <Link to="/admin">Admin Panel</Link>}
         </div>
         <div className="navbar-user">
+          <NotificationBell />
           <Link to="/profile" style={{ textDecoration: 'none', color: 'inherit' }}>
             <span>@{user?.username}</span>
           </Link>
@@ -35,6 +38,7 @@ const Layout = () => {
           </button>
         </div>
       </nav>
+      <NotificationToast />
       <main className="main-content">
         <Outlet />
       </main>
