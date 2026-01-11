@@ -33,7 +33,16 @@ api.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-  login: (email, password) => api.post('/api/auth/login', { email, password }),
+  login: (email, password) => {
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
+    return api.post('/api/auth/login', formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+  },
   register: (data) => api.post('/api/auth/register', data),
   me: () => api.get('/api/auth/me'),
 };
@@ -55,7 +64,7 @@ export const teamAPI = {
   create: (data) => api.post('/api/teams', data),
   update: (id, data) => api.put(`/api/teams/${id}`, data),
   delete: (id) => api.delete(`/api/teams/${id}`),
-  addMember: (id, userId) => api.post(`/api/teams/${id}/members`, { userId }),
+  addMember: (id, userId) => api.post(`/api/teams/${id}/members`, { user_id: userId }),
   removeMember: (id, userId) => api.delete(`/api/teams/${id}/members/${userId}`),
 };
 

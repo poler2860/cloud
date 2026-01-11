@@ -33,8 +33,8 @@ const TeamDetail = () => {
         description: teamRes.data.description || '',
       });
 
-      // Load all users if user can add members
-      if (isAdmin() || teamRes.data.leader_id === user?.id) {
+      // Load all users if team leader can add members
+      if (teamRes.data.leader_id === user?.id) {
         const usersRes = await userAPI.getAll({ status: 'active' });
         setAllUsers(usersRes.data);
       }
@@ -84,7 +84,8 @@ const TeamDetail = () => {
   };
 
   const canManageTeam = () => {
-    return isAdmin() || team?.leader_id === user?.id;
+    // Only team leaders can manage members, not admins
+    return team?.leader_id === user?.id;
   };
 
   if (loading) {
@@ -96,7 +97,7 @@ const TeamDetail = () => {
   }
 
   const availableUsers = allUsers.filter(
-    u => !team.members.some(m => m.id === u.id)
+    u => !team.members.some(m => m.id === u.id) && u.role !== 'admin'
   );
 
   return (

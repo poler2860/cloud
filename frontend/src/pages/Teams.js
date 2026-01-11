@@ -47,10 +47,15 @@ const Teams = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        leader_id: parseInt(formData.leaderId)
+      };
       if (editingTeam) {
-        await teamAPI.update(editingTeam.id, formData);
+        await teamAPI.update(editingTeam.id, payload);
       } else {
-        await teamAPI.create(formData);
+        await teamAPI.create(payload);
       }
       setShowModal(false);
       setEditingTeam(null);
@@ -108,7 +113,6 @@ const Teams = () => {
               <h3>{team.name}</h3>
               <p style={{ color: '#666', marginBottom: '10px' }}>{team.description}</p>
               <p><strong>Leader:</strong> {team.leader_name}</p>
-              <p><strong>Members:</strong> {team.member_count}</p>
               <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
                 <button
                   className="btn btn-primary"

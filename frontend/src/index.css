@@ -217,14 +217,16 @@ table tr:hover {
   z-index: 1000;
 }
 
-.modal {
+.modal,
+.modal-content {
   background: white;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 30px;
   max-width: 600px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
 .modal h2 {

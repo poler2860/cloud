@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import './Layout.css';
 
 const Layout = () => {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, isTeamLeader } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -21,12 +21,15 @@ const Layout = () => {
         <div className="navbar-links">
           <Link to="/dashboard">Dashboard</Link>
           <Link to="/teams">Teams</Link>
+          {isTeamLeader() && <Link to="/tasks">Tasks</Link>}
           <Link to="/my-tasks">My Tasks</Link>
           {isAdmin() && <Link to="/admin">Admin Panel</Link>}
         </div>
         <div className="navbar-user">
-          <span>{user?.firstName} {user?.lastName}</span>
-          <span className={`badge badge-${user?.status}`}>{user?.role}</span>
+          <Link to="/profile" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <span>@{user?.username}</span>
+          </Link>
+          <span className={`badge badge-${user?.role}`}>{user?.role}</span>
           <button onClick={handleLogout} className="btn btn-secondary">
             Logout
           </button>

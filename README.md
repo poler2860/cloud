@@ -42,6 +42,7 @@ The system consists of:
 - **Task Service** (Port 3003): Handles tasks and comments
 - **Frontend** (React): User interface
 - **Nginx**: Reverse proxy and static file serving
+- **pgweb** (Port 8081): Modern web-based PostgreSQL database manager
 
 ## Prerequisites
 
@@ -66,16 +67,29 @@ The system consists of:
    - Team Service on port 3002
    - Task Service on port 3003
    - Nginx on port 80
+   - pgweb on port 8081
 
 3. **Access the application**
    
-   Open your browser and navigate to: `http://localhost`
+   - **Main App**: `http://localhost`
+   - **Database Manager (pgweb)**: `http://localhost:8081`
 
 4. **Default Admin Account**
    - Email: `admin@nefos.com`
    - Password: `admin123`
    
    **Important**: Change this password immediately in production!
+
+5. **Database Management**
+   
+   Access the pgweb database manager at `http://localhost:8081` to:
+   - Browse database tables and data
+   - Run SQL queries with syntax highlighting
+   - View database structure and relationships
+   - Export data in various formats
+   - Monitor query performance
+   
+   The connection is automatically configured - just open the URL!
 
 ## Development
 

@@ -100,6 +100,20 @@ services:
       - nefos-network
     restart: unless-stopped
 
+  pgweb:
+    image: sosedoff/pgweb
+    container_name: nefos-pgweb
+    ports:
+      - "8081:8081"
+    environment:
+      PGWEB_DATABASE_URL: postgres://postgres:postgres@postgres:5432/nefos?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - nefos-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
 

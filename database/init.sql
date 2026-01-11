@@ -1,7 +1,7 @@
 -- Database initialization script for Nefos (Jira-like application)
 
 -- Create enum types
-CREATE TYPE user_role AS ENUM ('user', 'admin');
+CREATE TYPE user_role AS ENUM ('user', 'leader', 'admin');
 CREATE TYPE user_status AS ENUM ('pending', 'active', 'inactive');
 CREATE TYPE task_status AS ENUM ('todo', 'in_progress', 'in_review', 'done');
 CREATE TYPE task_priority AS ENUM ('low', 'medium', 'high', 'critical');
@@ -10,10 +10,11 @@ CREATE TYPE task_priority AS ENUM ('low', 'medium', 'high', 'critical');
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    role user_role DEFAULT 'user',
+    role user_role DEFAULT 'user' NOT NULL,
     status user_status DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -74,56 +75,7 @@ CREATE INDEX idx_tasks_assignee ON tasks(assignee_id);
 CREATE INDEX idx_tasks_status ON tasks(status);
 CREATE INDEX idx_comments_task ON comments(task_id);
 
--- Create unique constraint to ensure a user can only lead one team
-CREATE UNIQUE INDEX idx_unique_team_leader ON teams(leader_id);
-
--- Create function to check if a user is a team leader before adding as member
-CREATE OR REPLACE FUNCTION check_member_not_leader()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Check if the user being added is a team leader of a DIFFERENT team
-    IF EXISTS (SELECT 1 FROM teams WHERE leader_id = NEW.user_id AND id != NEW.team_id) THEN
-        RAISE EXCEPTION 'User is already a team leader and cannot be a member of other teams';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create trigger to enforce the constraint
-CREATE TRIGGER prevent_leader_as_member
-    BEFORE INSERT ON team_members
-    FOR EACH ROW
-    EXECUTE FUNCTION check_member_not_leader();
-
--- Create function to check if a user is a member of other teams before becoming a leader
-CREATE OR REPLACE FUNCTION check_leader_not_member()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- When creating a new team, check if leader is a member of other teams
-    IF (TG_OP = 'INSERT') THEN
-        IF EXISTS (SELECT 1 FROM team_members WHERE user_id = NEW.leader_id) THEN
-            RAISE EXCEPTION 'User is a member of other teams and cannot become a team leader';
-        END IF;
-    END IF;
-    
-    -- When updating a team leader, check if new leader is a member of other teams
-    IF (TG_OP = 'UPDATE' AND OLD.leader_id IS DISTINCT FROM NEW.leader_id) THEN
-        IF EXISTS (SELECT 1 FROM team_members WHERE user_id = NEW.leader_id AND team_id != NEW.id) THEN
-            RAISE EXCEPTION 'User is a member of other teams and cannot become a team leader';
-        END IF;
-    END IF;
-    
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create trigger to enforce the constraint
-CREATE TRIGGER prevent_member_as_leader
-    BEFORE INSERT OR UPDATE ON teams
-    FOR EACH ROW
-    EXECUTE FUNCTION check_leader_not_member();
-
--- Create function to update updated_at timestamp
+-- Create function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -147,11 +99,11 @@ CREATE TRIGGER update_comments_updated_at BEFORE UPDATE ON comments
 
 -- Insert default admin user (password: admin123)
 -- Note: In production, this should be changed immediately
-INSERT INTO users (email, password_hash, first_name, last_name, role, status)
-VALUES ('admin@nefos.com', '$2b$10$cyTKOTL.nreIgcPfX.R4..iBWFJCBxiDN2JzbJs4Pdy7EM5aL7YT6', 'Admin', 'User', 'admin', 'active');
+INSERT INTO users (email, username, password_hash, first_name, last_name, role, status)
+VALUES ('admin@nefos.com', 'admin', '$2b$10$cyTKOTL.nreIgcPfX.R4..iBWFJCBxiDN2JzbJs4Pdy7EM5aL7YT6', 'Admin', 'User', 'admin', 'active');
 
 -- Insert sample users for testing (password for all: admin123)
-INSERT INTO users (email, password_hash, first_name, last_name, role, status)
+INSERT INTO users (email, username, password_hash, first_name, last_name, role, status)
 VALUES 
-    ('john.doe@nefos.com', '$2b$10$cyTKOTL.nreIgcPfX.R4..iBWFJCBxiDN2JzbJs4Pdy7EM5aL7YT6', 'John', 'Doe', 'user', 'active'),
-    ('jane.smith@nefos.com', '$2b$10$cyTKOTL.nreIgcPfX.R4..iBWFJCBxiDN2JzbJs4Pdy7EM5aL7YT6', 'Jane', 'Smith', 'user', 'active');
+    ('john.doe@nefos.com', 'johndoe', '$2b$10$cyTKOTL.nreIgcPfX.R4..iBWFJCBxiDN2JzbJs4Pdy7EM5aL7YT6', 'John', 'Doe', 'user', 'active'),
+    ('jane.smith@nefos.com', 'janesmith', '$2b$10$cyTKOTL.nreIgcPfX.R4..iBWFJCBxiDN2JzbJs4Pdy7EM5aL7YT6', 'Jane', 'Smith', 'user', 'active');

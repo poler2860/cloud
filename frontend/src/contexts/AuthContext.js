@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authAPI } from '../services/api';
+import { authAPI, teamAPI } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -13,6 +13,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,17 +22,38 @@ export const AuthProvider = ({ children }) => {
     
     if (token && savedUser) {
       setUser(JSON.parse(savedUser));
+      loadTeams();
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
+
+  const loadTeams = async () => {
+    try {
+      const response = await teamAPI.getAll();
+      setTeams(response.data);
+    } catch (error) {
+      console.error('Failed to load teams:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (email, password) => {
     const response = await authAPI.login(email, password);
-    const { token, user } = response.data;
+    const { access_token } = response.data;
     
-    localStorage.setItem('token', token);
+    localStorage.setItem('token', access_token);
+    
+    // Fetch user info
+    const userResponse = await authAPI.me();
+    const user = userResponse.data;
+    
     localStorage.setItem('user', JSON.stringify(user));
     setUser(user);
+    
+    // Load teams
+    await loadTeams();
     
     return user;
   };
@@ -51,12 +73,19 @@ export const AuthProvider = ({ children }) => {
     return user?.role === 'admin';
   };
 
+  const isTeamLeader = () => {
+    if (!user || !teams) return false;
+    return teams.some(team => team.leader_id === user.id);
+  };
+
   const value = {
     user,
+    teams,
     login,
     register,
     logout,
     isAdmin,
+    isTeamLeader,
     loading,
   };
 

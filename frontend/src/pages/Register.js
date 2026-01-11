@@ -6,6 +6,7 @@ import './Auth.css';
 const Register = () => {
   const [formData, setFormData] = useState({
     email: '',
+    username: '',
     password: '',
     firstName: '',
     lastName: '',
@@ -30,11 +31,19 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const result = await register(formData);
+      // Transform camelCase to snake_case for backend
+      const payload = {
+        email: formData.email,
+        username: formData.username,
+        password: formData.password,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+      };
+      const result = await register(payload);
       setSuccess(result.message || 'Registration successful! Waiting for admin approval.');
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed');
+      setError(err.response?.data?.detail || err.response?.data?.error || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -74,6 +83,18 @@ const Register = () => {
               value={formData.email}
               onChange={handleChange}
               required
+            />
+          </div>
+          <div className="form-group">
+            <label>Username</label>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+              minLength="3"
+              maxLength="100"
             />
           </div>
           <div className="form-group">
